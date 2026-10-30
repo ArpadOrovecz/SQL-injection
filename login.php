@@ -1,5 +1,5 @@
 <!-- ==================================================
-vulnerable to SQL injection: YES
+vulnerable to SQL injection: NO
 tunnel login: YES
 hashing: NO
 ================================================== -->
@@ -40,22 +40,26 @@ if (!isset($_SESSION['teacher_ok'])) {
 
 <?php
 // connecting to DB
-$conn = new mysqli("127.0.0.1", "root", "mysql", "lab");
+$conn = new mysqli("192.168.2.20", "appUser", "appPass123", "lab");
 if ($conn->connect_error) {
     die("fail: " . $conn->connect_error);
 }
 
 // The query is only checked when an actual request was sent
-if ($_SERVER["REQUEST_METHOD"] === "POST"){
-    $sql = "SELECT username FROM users WHERE username = '" . $_POST["username"] . "' AND password = '" . $_POST["password"] . "'";
-    $result = $conn->query($sql);
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["username"])) {
+    $stmt = $conn->prepare("SELECT username FROM users WHERE username = ? AND password = ?");
+    
+    // Let's put the 2 string-type variables that we got from the input in the place of the placeholders in the query
+    $stmt->bind_param("ss", $_POST["username"], $_POST["password"]);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    // If the request was successful print YES, if not NO
     if ($result->num_rows == 1) {
         print("YES");
     }
     else{
         print("NO");
     }
-}
+} 
+    
 ?>

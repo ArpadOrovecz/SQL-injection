@@ -1,8 +1,27 @@
 <!-- ==================================================
 vulnerable to SQL injection: YES
-tunnel login: NO
+tunnel login: YES
 hashing: NO
 ================================================== -->
+
+<?php
+session_start();
+$teacher_password = "TeacherGate2026!Secure";
+
+if (!isset($_SESSION['teacher_ok'])) {
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['teacher'])) {
+        if ($_POST['teacher'] === $teacher_password) {
+            $_SESSION['teacher_ok'] = true;
+        } else {
+            echo "Wrong password<br>";
+        }
+    }
+    if (!isset($_SESSION['teacher_ok'])) {
+        echo '<form method="post"><input type="password" name="teacher" placeholder="Teacher password"><button type="submit">Enter</button></form>';
+        exit;
+    }
+}
+?>
 
 <form method="post">
     <!-- name -->
@@ -28,18 +47,8 @@ if ($conn->connect_error) {
 
 // The query is only checked when an actual request was sent
 if ($_SERVER["REQUEST_METHOD"] === "POST"){
-    // mySQL command to search the DB for the text we have from HTML input
     $sql = "SELECT username FROM users WHERE username = '" . $_POST["username"] . "' AND password = '" . $_POST["password"] . "'";
     $result = $conn->query($sql);
-
-    // // prepare() asks mySQL to get ready to run that command later, and remembers the locations of the ? placeholders
-    // $stmt = $conn->prepare("SELECT username FROM users WHERE username = ? AND password = ?");
-
-    // // bind-param() takes 3 parameters to substitute in the placeholders: type of variable, and the 2 actual variables
-    // $stmt->bind_param("ss", $_POST["username"], $_POST["password"]);
-
-    // $stmt->execute();
-    // $result = $stmt->get_result();
 
     // If the request was successful print YES, if not NO
     if ($result->num_rows == 1) {
@@ -49,5 +58,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST"){
         print("NO");
     }
 }
-
 ?>
